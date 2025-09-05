@@ -134,8 +134,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Django cors header 
 
 CORS_ORIGIN_WHITELIST = [
-    'http://localhost:3000'
+    'http://localhost:5173'
 ]
+CORS_ALLOW_CREDENTIALS = True
 
 # Custom User
 AUTH_USER_MODEL = 'accounts.CustomUser'

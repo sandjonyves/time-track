@@ -4,14 +4,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.exceptions import InvalidToken,TokenError
 from rest_framework.permissions import AllowAny
 from .serializers import RegisterModelSerializer, LoginUserSerializer, CustomUserSerializer
 from rest_framework_simplejwt.views import TokenRefreshView
-# Create your views here.
-
-from rest_framework import status
-from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.generics import CreateAPIView
 from .serializers import RegisterModelSerializer, CustomUserSerializer
@@ -43,14 +39,14 @@ class UserRegistrationView(CreateAPIView):
             key="access_token",
             value=access_token,
             httponly=True,
-            secure=True,
+            secure=False,
             samesite="Strict"
         )
         response.set_cookie(
             key="refresh_token",
             value=str(refresh),
             httponly=True,
-            secure=True,
+            secure=False,
             samesite="Strict"
         )
 
@@ -58,13 +54,14 @@ class UserRegistrationView(CreateAPIView):
 
 
 class UserLoginView(APIView):
-    permission_classes= [AllowAny]
-    def post(self, request):
-        serializer = LoginUserSerializer(data=request.data)  
+    permission_classes = [AllowAny]
 
-        if serializer.is_valid(raise_exception=True):
+    def post(self, request):
+        serializer = LoginUserSerializer(data=request.data)
+
+        if serializer.is_valid():
             user = serializer.validated_data
-            refresh = RefreshToken.for_user(user) 
+            refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
 
             response = Response(
@@ -72,7 +69,6 @@ class UserLoginView(APIView):
                     "user": CustomUserSerializer(user).data,
                     "message": "User logged in successfully",
                 },
-                
                 status=status.HTTP_200_OK
             )
 
@@ -80,21 +76,31 @@ class UserLoginView(APIView):
                 key="access_token",
                 value=access_token,
                 httponly=True,
-                secure=True,
+                secure=False,
                 samesite="Strict"
             )
             response.set_cookie(
                 key="refresh_token",
                 value=str(refresh),
                 httponly=True,
-                secure=True,
+                secure=False,
                 samesite="Strict"
             )
 
             return response
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            
+            message = "Invalid data provided."
+            if 'email' in serializer.errors:
+                message = "Invalid email address or user not found."
+            elif 'password' in serializer.errors:
+                message = "Incorrect password."
 
+            return Response(
+                {"message": message},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 class UserLogoutView(APIView):
     permission_classes= [AllowAny]
@@ -112,29 +118,41 @@ class UserLogoutView(APIView):
 
 
 class CookieTokenRefreshView(TokenRefreshView):
-    permission_classes= [AllowAny]
-    def post (self, request):
+    permission_classes = [AllowAny]
 
+    def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
 
         if not refresh_token:
             return Response({"message": "No refresh token provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Cette ligne peut lever TokenError si le token est blacklisté
             refresh = RefreshToken(refresh_token)
             access_token = str(refresh.access_token)
-            refresh.blacklist()
-            response = Response({"message": "Token refreshed successfully"}, status=status.HTTP_200_OK)
-    
+
+            # Ne pas blacklist ici pour éviter l'erreur
+            # refresh.blacklist()
+
+            response = Response(
+                {"message": "Token refreshed successfully"},
+                status=status.HTTP_200_OK
+            )
+
             response.set_cookie(
                 key="access_token",
                 value=access_token,
                 httponly=True,
-                secure=True,
+                secure=False,  # False pour local, True en prod
                 samesite="Strict"
             )
             return response
-        except InvalidToken as e:
-            return Response({"detail": "Error refreshing token. {}".format(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-       
+        except TokenError as e:
+            # Le token est invalide ou blacklisté
+            return Response({"detail": "Refresh token is invalid or blacklisted."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        except InvalidToken as e:
+            # Token malformé
+            return Response({"detail": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+
