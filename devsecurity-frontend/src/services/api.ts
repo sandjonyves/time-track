@@ -1,6 +1,6 @@
 import axios, { type AxiosRequestConfig, type AxiosError } from 'axios';
 
-export const API_BASE_URL = 'http://localhost:8000/api';
+export const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 export class ApiService {
   private static axiosInstance = axios.create({

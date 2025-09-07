@@ -40,14 +40,14 @@ class UserRegistrationView(CreateAPIView):
             value=access_token,
             httponly=True,
             secure=False,
-            samesite="Strict"
+            samesite="None"
         )
         response.set_cookie(
             key="refresh_token",
             value=str(refresh),
             httponly=True,
             secure=False,
-            samesite="Strict"
+            samesite="None"
         )
 
         return response
@@ -77,14 +77,14 @@ class UserLoginView(APIView):
                 value=access_token,
                 httponly=True,
                 secure=False,
-                samesite="Strict"
+                samesite="None"
             )
             response.set_cookie(
                 key="refresh_token",
                 value=str(refresh),
                 httponly=True,
                 secure=False,
-                samesite="Strict"
+                samesite="None"
             )
 
             return response
@@ -127,12 +127,10 @@ class CookieTokenRefreshView(TokenRefreshView):
             return Response({"message": "No refresh token provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Cette ligne peut lever TokenError si le token est blacklisté
             refresh = RefreshToken(refresh_token)
             access_token = str(refresh.access_token)
 
-            # Ne pas blacklist ici pour éviter l'erreur
-            # refresh.blacklist()
+
 
             response = Response(
                 {"message": "Token refreshed successfully"},
@@ -143,16 +141,15 @@ class CookieTokenRefreshView(TokenRefreshView):
                 key="access_token",
                 value=access_token,
                 httponly=True,
-                secure=False,  # False pour local, True en prod
-                samesite="Strict"
+                secure=False,  
+                samesite="None"
             )
             return response
 
         except TokenError as e:
-            # Le token est invalide ou blacklisté
             return Response({"detail": "Refresh token is invalid or blacklisted."}, status=status.HTTP_401_UNAUTHORIZED)
 
         except InvalidToken as e:
-            # Token malformé
+            
             return Response({"detail": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
 
