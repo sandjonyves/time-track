@@ -124,6 +124,6 @@ SIMPLE_JWT = {
     "AUTH_COOKIE": "access_token",
     "AUTH_COOKIE_REFRESH": "refresh_token",
     "AUTH_COOKIE_HTTP_ONLY": True,
-    "AUTH_COOKIE_SECURE": False,       # True si HTTPS
-    "AUTH_COOKIE_SAMESITE": "None",    # nécessaire pour Docker cross-port
+    "AUTH_COOKIE_SECURE": True,      
+    "AUTH_COOKIE_SAMESITE": "None",   
 }
