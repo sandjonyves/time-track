@@ -1,7 +1,7 @@
 services:
   backend:
     build: ./backend
-    container_name: devsecurity
+    container_name: backend
     ports:
       - "8000:8000"
     volumes:
@@ -11,9 +11,9 @@ services:
     depends_on:
       - db
 
-  devsecurity-frontend:
-    build: ./devsecurity-frontend
-    container_name: devsecurity-frontend
+  frontend:
+    build: ./frontend
+    container_name: frontend
     ports:
       - "3000:5173"
     depends_on:
