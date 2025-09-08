@@ -9,9 +9,10 @@ import { useTimeLogStore } from '../store/timeLogStore';
 import SearchBar from '../components/Search';
 import Filters from '../components/Filter';
 import Button from '../components/ui/Button';
+import TimeLogItemSkeleton from '../components/ui/TimeLogItemSkeleton';
 
 const TimeLogs: React.FC<TimeLogsProps> = () => {
-  const { timeLogs, fetchFilteredLogs } = useTimeLogStore();
+  const { timeLogs, fetchFilteredLogs,loading } = useTimeLogStore();
 
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -39,7 +40,10 @@ const TimeLogs: React.FC<TimeLogsProps> = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex justify-between items-center mb-6">
+     
+     {loading? <TimeLogItemSkeleton /> : 
+        <>
+        <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Time Logs</h2>
           <p className="text-gray-600">View and manage your tracked time</p>
@@ -89,6 +93,7 @@ const TimeLogs: React.FC<TimeLogsProps> = () => {
         isOpen={showModal}
         onClose={() => setShowModal(false)}
       />
+      </>}
     </div>
   );
 };
