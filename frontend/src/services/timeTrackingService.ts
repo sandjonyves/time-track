@@ -12,8 +12,9 @@ interface FilterParams {
 
 export class TimeTrackingService {
   // Récupérer toutes les tâches
-  static async getTimeLogs(): Promise<TimeLogResponse[]> {
-    return await ApiService.get<TimeLogResponse[]>('/tasks/');
+  static async getTimeLogs(userId: number, page: number): Promise<TimeLogResponse[]> {
+   
+    return await ApiService.get<TimeLogResponse[]>(`/tasks/?user_id=${userId}&page=${page}`);
   }
 
   // Récupérer une tâche par ID

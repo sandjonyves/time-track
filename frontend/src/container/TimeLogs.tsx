@@ -1,25 +1,27 @@
-
-import type { TimeLogsProps } from '../types';
-import { useState, useEffect } from 'react';
-import { formatDuration } from '../utils';
+import React, { useState, useEffect } from 'react';
+import { useTimeLogStore } from '../store/timeLogStore';
 import TimeLogItem from '../components/TimeLogItem';
 import NewLogModal from '../components/NewLogModal';
-import { Plus } from 'lucide-react';
-import { useTimeLogStore } from '../store/timeLogStore';
+import TimeLogItemSkeleton from '../components/ui/TimeLogItemSkeleton';
 import SearchBar from '../components/Search';
 import Filters from '../components/Filter';
 import Button from '../components/ui/Button';
-import TimeLogItemSkeleton from '../components/ui/TimeLogItemSkeleton';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
 
-const TimeLogs: React.FC<TimeLogsProps> = () => {
-  const { timeLogs, fetchFilteredLogs,loading } = useTimeLogStore();
-
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [showModal, setShowModal] = useState<boolean>(false);
+const TimeLogs: React.FC = () => {
+  const { timeLogs, fetchTimeLogs, fetchFilteredLogs, loading, hasMore } = useTimeLogStore();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState<'newest' | 'oldest'>('newest');
   const [durationFilter, setDurationFilter] = useState<'longest' | 'shortest'>('longest');
 
-  // 🔹 Charger les logs filtrés dès que les filtres changent
+  const { user } = useAuthStore();
+  const userId = user?.id || 1;
+
+  // Charger la première page au montage ou quand les filtres changent
   useEffect(() => {
     const orderBy =
       dateFilter === 'newest'
@@ -30,70 +32,112 @@ const TimeLogs: React.FC<TimeLogsProps> = () => {
         ? 'duration_recent'
         : 'duration_old';
 
+    // reset pagination
+    setCurrentPage(1);
     fetchFilteredLogs({
       search: searchTerm || undefined,
       orderBy,
     });
-  }, [searchTerm, dateFilter, durationFilter, fetchFilteredLogs]);
+  }, [fetchFilteredLogs, searchTerm, dateFilter, durationFilter]);
 
-  const totalTime = timeLogs.reduce((sum, log) => sum + (log.duration ?? 0), 0);
+  // Pagination suivante
+  const handleNextPage = async () => {
+    if (loading || isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+    const nextPage = currentPage + 1;
+
+    try {
+      await fetchTimeLogs(userId, nextPage);
+      setCurrentPage(nextPage);
+    } catch (error) {
+      console.error('Erreur lors du chargement de la page suivante:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Pagination précédente
+  const handlePreviousPage = async () => {
+    if (loading || isLoadingMore || currentPage <= 1) return;
+
+    setIsLoadingMore(true);
+    const prevPage = currentPage - 1;
+
+    try {
+      await fetchTimeLogs(userId, prevPage);
+      setCurrentPage(prevPage);
+    } catch (error) {
+      console.error('Erreur lors du chargement de la page précédente:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-     
-     {loading? <TimeLogItemSkeleton /> : 
-        <>
-        <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Time Logs</h2>
-          <p className="text-gray-600">View and manage your tracked time</p>
-        </div>
+    <div className="bg-gray-50 rounded-lg p-4 mb-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-medium text-gray-900">Time Logs</h3>
+        <Button onClick={() => setShowModal(true)} variant="primary">
+          <Plus className="w-4 h-4 mr-2" /> New Log
+        </Button>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Time Logs</h3>
+      <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+      <Filters
+        dateFilter={dateFilter}
+        onDateFilterChange={setDateFilter}
+        durationFilter={durationFilter}
+        onDurationFilterChange={setDurationFilter}
+      />
+
+      <div className="space-y-3 max-h-96 overflow-y-auto border-t border-gray-200 pt-4">
+        {timeLogs.map((log) => (
+          <TimeLogItem key={log.id} log={log} />
+        ))}
+
+        {(loading || isLoadingMore) && (
+          <>
+            <TimeLogItemSkeleton />
+            <TimeLogItemSkeleton />
+            <TimeLogItemSkeleton />
+          </>
+        )}
+
+        {timeLogs.length === 0 && !loading && !isLoadingMore && (
+          <div className="text-center py-8 text-gray-500">Aucun log trouvé</div>
+        )}
+      </div>
+
+      {timeLogs.length > 0 && (
+        <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
           <Button
-            onClick={() => setShowModal(true)}
-            variant='primary'
-          >           
-            <Plus className="w-4 h-4 mr-2" />
+            onClick={handlePreviousPage}
+            variant="secondary"
+            disabled={currentPage <= 1 || loading || isLoadingMore}
+          >
+            <ChevronLeft className="w-4 h-4 mr-2" /> Précédent
+          </Button>
+
+          <span className="text-sm text-gray-600">Page {currentPage}</span>
+
+          <Button
+            onClick={handleNextPage}
+            variant="secondary"
+            disabled={!hasMore || loading || isLoadingMore}
+          >
+            Suivant <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
+      )}
 
-        <p className="text-sm text-gray-600 mb-4">
-          {timeLogs.length} entries • Total: {formatDuration(totalTime)}
-        </p>
-
-        <SearchBar
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-        />
-
-        <Filters
-          dateFilter={dateFilter}
-          onDateFilterChange={setDateFilter}
-          durationFilter={durationFilter}
-          onDurationFilterChange={setDurationFilter}
-        />
-
-        <div className="space-y-3 max-h-96 overflow-y-auto">
-          {timeLogs.map((log) => (
-            <TimeLogItem key={log.id} log={log} />
-          ))}
-          {timeLogs.length === 0 && searchTerm && (
-            <div className="text-center py-8 text-gray-500">
-              No logs found matching "{searchTerm}"
-            </div>
-          )}
+      {!hasMore && !loading && !isLoadingMore && timeLogs.length > 0 && (
+        <div className="text-center py-2 text-gray-500 text-sm">
+          Aucune page supplémentaire
         </div>
-      </div>
+      )}
 
-      <NewLogModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-      />
-      </>}
+      <NewLogModal isOpen={showModal} onClose={() => setShowModal(false)} />
     </div>
   );
 };

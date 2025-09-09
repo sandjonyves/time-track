@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
 
   // Fetch logs when component mounts
   useEffect(() => {
-    fetchTimeLogs();
+    fetchTimeLogs(user?.id!, 1);
   }, [fetchTimeLogs]);
 
   // Timer effect

@@ -15,7 +15,7 @@ from .models import CustomUser
 
 
 class UserRegistrationView(CreateAPIView):
-    permission_classes= [AllowAny]
+    # permission_classes= [AllowAny]
     serializer_class = RegisterModelSerializer
     queryset = CustomUser.objects.all()
 
@@ -54,7 +54,7 @@ class UserRegistrationView(CreateAPIView):
 
 
 class UserLoginView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = LoginUserSerializer(data=request.data)
@@ -103,7 +103,7 @@ class UserLoginView(APIView):
             )
 
 class UserLogoutView(APIView):
-    permission_classes= [AllowAny]
+    # permission_classes= [AllowAny]
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
         if refresh_token:
@@ -118,7 +118,7 @@ class UserLogoutView(APIView):
 
 
 class CookieTokenRefreshView(TokenRefreshView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
 
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")

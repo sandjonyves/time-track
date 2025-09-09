@@ -8,7 +8,7 @@ interface TimeLogState {
   loading: boolean;
   error: string | null;
 
-  fetchTimeLogs: () => Promise<void>;
+  fetchTimeLogs: (userId: number, page: number) => Promise<void>;
   fetchFilteredLogs: (filters: { 
     search?:string,
     date?: string; 
@@ -18,35 +18,46 @@ interface TimeLogState {
   }) => Promise<void>;
   addTimeLog: (data: CreateTimeLogRequest) => Promise<void>;
   deleteTimeLog: (id: number) => Promise<void>;
+  
+  hasMore: boolean; // 🔹 nouvelle propriété
 }
 
 export const useTimeLogStore = create<TimeLogState>((set, get) => ({
   timeLogs: [],
   loading: false,
   error: null,
+  hasMore: true, // initialement true
 
-
-  fetchTimeLogs: async () => {
+  fetchTimeLogs: async (userId, page) => {
     set({ loading: true, error: null });
     try {
-      const logs = await TimeTrackingService.getTimeLogs();
-      set({ timeLogs: logs, loading: false });
+      const logs = await TimeTrackingService.getTimeLogs(userId, page);
+      console.log(logs)
+      set(state => ({
+        timeLogs:  logs.results , 
+        loading: false,
+        hasMore: logs.results.length > 0, 
+      }));
     } catch (err: any) {
-      set({ error: err.message ?? 'Erreur lors du chargement', loading: false });
+         set({
+      error: err.message ?? 'Erreur lors du chargement',
+      loading: false,
+      hasMore: false,
+    });
     }
   },
-
 
   fetchFilteredLogs: async (filters) => {
     set({ loading: true, error: null });
     try {
+      
       const logs = await TimeTrackingService.getFilteredTimeLogs(filters);
-      set({ timeLogs: logs, loading: false });
+      console.log('xzxxz',logs)
+      set({ timeLogs: logs.results, loading: false, hasMore: logs.length > 0 });
     } catch (err: any) {
       set({ error: err.message ?? 'Erreur de filtre', loading: false });
     }
   },
-
 
   addTimeLog: async (data) => {
     set({ loading: true, error: null });
@@ -57,7 +68,6 @@ export const useTimeLogStore = create<TimeLogState>((set, get) => ({
       set({ error: err.message ?? 'Erreur création', loading: false });
     }
   },
-
 
   deleteTimeLog: async (id) => {
     set({ loading: true, error: null });
