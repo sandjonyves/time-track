@@ -57,7 +57,7 @@ POSTGRES_PORT=5432
 
 ### Backend (Django + pytest)
 ```bash
-docker-compose exec backend pyhon manage.py runserver
+docker exec -it backend python manage.py test apps.accounts.tests ; docker exec -it backend python manage.py test apps.tasks.tests
 
 ```
 

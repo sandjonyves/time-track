@@ -15,10 +15,11 @@ class Task(models.Model):
     updated_at = models.DateTimeField(auto_now=True)       
 
     def save(self, *args, **kwargs):
-      
-        if self.start_time and self.end_time:
-            self.duration = self.end_time - self.start_time
-        super().save(*args, **kwargs)
+            if self.start_time and self.end_time:
+                self.duration = self.end_time - self.start_time
+                self.start_date = self.start_time.date()
+                self.end_date = self.end_time.date()
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.description} ({self.start_time.date()})"

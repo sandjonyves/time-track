@@ -3,6 +3,10 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from .models import CustomUser
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.test import TestCase
+from django.db.models.signals import post_migrate
+from apps.accounts.signals import create_initial_users_and_tasks
+from apps.tasks.models import Task
 
 class AuthViewsTests(APITestCase):
 
@@ -66,3 +70,31 @@ class AuthViewsTests(APITestCase):
         response = self.client.post(self.refresh_url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["message"], "No refresh token provided")
+
+
+
+class SignalTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        post_migrate.disconnect(create_initial_users_and_tasks)
+    
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        post_migrate.connect(create_initial_users_and_tasks)
+    
+    def test_signal_creates_users_and_tasks(self):
+        CustomUser.objects.all().delete()
+        Task.objects.all().delete()
+        
+        self.assertEqual(CustomUser.objects.count(), 0)
+        self.assertEqual(Task.objects.count(), 0)
+        
+        create_initial_users_and_tasks(sender=None)
+        
+        self.assertEqual(CustomUser.objects.count(), 2)
+        
+        for user in CustomUser.objects.all():
+            tasks = Task.objects.filter(user=user)
+            self.assertEqual(tasks.count(), 10)
