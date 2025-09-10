@@ -27,7 +27,7 @@ export class TimeTrackingService {
     return await ApiService.post<TimeLogResponse>('/tasks/', data);
   }
 
-  // Supprimer une tâche
+
   static async deleteTimeLog(id: number): Promise<void> {
     await ApiService.delete(`/tasks/${id}/`);
   }

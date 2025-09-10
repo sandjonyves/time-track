@@ -39,7 +39,7 @@ const Timer: React.FC<TimerPropsExtended> = ({ time: initialTime = 0, onSaveSess
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 relative overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8  overflow-hidden">
       {/* Header */}
       <div className="relative z-10 mb-8">
         <div className="flex items-center justify-between mb-2">
@@ -56,7 +56,7 @@ const Timer: React.FC<TimerPropsExtended> = ({ time: initialTime = 0, onSaveSess
         <div className="text-3xl font-mono font-bold text-gray-800">{formatTime(time)}</div>
       </div>
 
-      {/* Controls */}
+     
       <div className="relative z-10 flex items-center justify-center space-x-4">
         <Button
           onClick={handleToggle}
@@ -101,7 +101,7 @@ const Timer: React.FC<TimerPropsExtended> = ({ time: initialTime = 0, onSaveSess
         </div>
       </div>
 
-      {/* Footer Text */}
+   
       <div className="relative z-10 mt-6 text-center">
         <p className="text-xs text-gray-400 italic">
           {isRunning

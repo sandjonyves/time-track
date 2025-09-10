@@ -4,8 +4,10 @@ import { Clock, BarChart3, Users, ArrowRight } from 'lucide-react';
 
 import timer from '../assets/timer.png';
 import Button from '../components/ui/Button';
+import { useAuthStore } from '../store/authStore';
 
 const Landing: React.FC = () => {
+ const { isAuthenticated } = useAuthStore()
   return (
     <div>
       <header className="sticky top-0 bg-white shadow">
@@ -18,11 +20,17 @@ const Landing: React.FC = () => {
           </div>
 
           <div className="hidden md:block">
-            <Link to="/signup">
-              <Button>
-                Start Free Trial
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/dashboard">
+                <Button>Go to Dashboard</Button>
+              </Link>
+            ) : (
+              <Link to="/signup">
+                <Button>
+                  Start Now <ArrowRight className="w-5 h-5" />
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </header>

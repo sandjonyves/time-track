@@ -2,9 +2,7 @@ import { ApiService } from './api';
 import type { User, AuthResponse, LoginFormData, RegisterFormData } from '../types/index';
 
 export class AuthService {
-  /**
-   * Authenticate user with email and password
-   */
+ 
   static async login(credentials: LoginFormData): Promise<AuthResponse> {
     const response = await ApiService.post<AuthResponse>('/login/', credentials);
 
@@ -17,9 +15,7 @@ export class AuthService {
     return { ...response, user };
   }
 
-  /**
-   * Register a new user
-   */
+ 
   static async register(userData: RegisterFormData): Promise<AuthResponse> {
     const response = await ApiService.post<AuthResponse>('/register/', userData);
 
@@ -32,9 +28,7 @@ export class AuthService {
     return { ...response, user };
   }
 
-  /**
-   * Logout user (invalidate session on server)
-   */
+ 
   static async logout(): Promise<void> {
     try {
       await ApiService.post('/logout/', {});
@@ -43,9 +37,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Refresh authentication tokens
-   */
   static async refreshToken(): Promise<void> {
     await ApiService.post('/token-refresh/', {});
   }
