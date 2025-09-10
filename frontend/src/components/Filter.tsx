@@ -8,7 +8,6 @@ const Filters: React.FC<FiltersProps> = ({
   onDurationFilterChange
 }) => (
   <div className="flex space-x-3 mb-4">
-    {/* Filter by Date */}
     <div className="flex-1">
       <label className="block text-xs font-medium text-gray-700 mb-1">Sort by Date</label>
       <select
@@ -21,7 +20,6 @@ const Filters: React.FC<FiltersProps> = ({
       </select>
     </div>
 
-    {/* Filter by Duration */}
     <div className="flex-1">
       <label className="block text-xs font-medium text-gray-700 mb-1">Sort by Duration</label>
       <select

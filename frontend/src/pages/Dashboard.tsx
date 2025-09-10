@@ -75,7 +75,7 @@ const Dashboard: React.FC = () => {
             onToggle={toggleTimer}
             onSaveSession={handleSaveSession}
           />
-          <TimeLogs logs={timeLogs} />
+          <TimeLogs />
         </div>
       </div>
 

@@ -18,29 +18,42 @@ const TimeLogs: React.FC = () => {
   const [dateFilter, setDateFilter] = useState<'newest' | 'oldest'>('newest');
   const [durationFilter, setDurationFilter] = useState<'longest' | 'shortest'>('longest');
 
+  // Nouveau : quel filtre a été modifié en dernier -> détermine la priorité
+  const [lastChanged, setLastChanged] = useState<'date' | 'duration'>('duration');
+
   const { user } = useAuthStore();
   const userId = user?.id || 1;
 
-  // Charger la première page au montage ou quand les filtres changent
-  useEffect(() => {
-    const orderBy =
-      dateFilter === 'newest'
-        ? 'date_recent'
-        : dateFilter === 'oldest'
-        ? 'date_old'
-        : durationFilter === 'longest'
-        ? 'duration_recent'
-        : 'duration_old';
+  // Handlers qui mettent à jour le filtre ET lastChanged
+  const handleDateFilterChange = (value: 'newest' | 'oldest') => {
+    setDateFilter(value);
+    setLastChanged('date');
+  };
 
-    // reset pagination
+  const handleDurationFilterChange = (value: 'longest' | 'shortest') => {
+    setDurationFilter(value);
+    setLastChanged('duration');
+  };
+
+  useEffect(() => {
+    let orderBy: string;
+
+    if (lastChanged === 'duration') {
+     
+      orderBy = durationFilter === 'longest' ? 'duration_recent' : 'duration_old';
+    } else {
+      
+      orderBy = dateFilter === 'newest' ? 'date_recent' : 'date_old';
+    }
+
+    console.log('Filters applied:', { searchTerm, orderBy, lastChanged });
     setCurrentPage(1);
     fetchFilteredLogs({
       search: searchTerm || undefined,
       orderBy,
     });
-  }, [fetchFilteredLogs, searchTerm, dateFilter, durationFilter]);
+  }, [fetchFilteredLogs, searchTerm, dateFilter, durationFilter, lastChanged]);
 
-  // Pagination suivante
   const handleNextPage = async () => {
     if (loading || isLoadingMore || !hasMore) return;
 
@@ -57,7 +70,6 @@ const TimeLogs: React.FC = () => {
     }
   };
 
-  // Pagination précédente
   const handlePreviousPage = async () => {
     if (loading || isLoadingMore || currentPage <= 1) return;
 
@@ -86,9 +98,9 @@ const TimeLogs: React.FC = () => {
       <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
       <Filters
         dateFilter={dateFilter}
-        onDateFilterChange={setDateFilter}
+        onDateFilterChange={handleDateFilterChange}
         durationFilter={durationFilter}
-        onDurationFilterChange={setDurationFilter}
+        onDurationFilterChange={handleDurationFilterChange}
       />
 
       <div className="space-y-3 max-h-96 overflow-y-auto border-t border-gray-200 pt-4">

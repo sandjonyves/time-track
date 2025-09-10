@@ -64,7 +64,7 @@ export class ApiService {
 
   private static getBaseURL(): string {
     if (import.meta.env.MODE === 'development') {
-      return '/api';
+      return 'http://127.0.0.1:8000/api';
     } else {
       return 'https://api.monsite.com/api';
     }
@@ -126,7 +126,6 @@ export class ApiService {
     return this.request<T>(endpoint, { method: 'DELETE' });
   }
 
-  // Méthode utilitaire pour forcer une déconnexion
   static logout(): void {
     this.redirectToLogin();
   }

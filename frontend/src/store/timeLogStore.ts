@@ -19,14 +19,14 @@ interface TimeLogState {
   addTimeLog: (data: CreateTimeLogRequest) => Promise<void>;
   deleteTimeLog: (id: number) => Promise<void>;
   
-  hasMore: boolean; // 🔹 nouvelle propriété
+  hasMore: boolean; 
 }
 
 export const useTimeLogStore = create<TimeLogState>((set, get) => ({
   timeLogs: [],
   loading: false,
   error: null,
-  hasMore: true, // initialement true
+  hasMore: true, 
 
   fetchTimeLogs: async (userId, page) => {
     set({ loading: true, error: null });
@@ -53,7 +53,7 @@ export const useTimeLogStore = create<TimeLogState>((set, get) => ({
       
       const logs = await TimeTrackingService.getFilteredTimeLogs(filters);
       console.log('xzxxz',logs)
-      set({ timeLogs: logs.results, loading: false, hasMore: logs.length > 0 });
+      set({ timeLogs: logs.results, loading: false, hasMore: logs.results.length > 0 });
     } catch (err: any) {
       set({ error: err.message ?? 'Erreur de filtre', loading: false });
     }
