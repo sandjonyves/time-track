@@ -66,7 +66,7 @@ export class ApiService {
     if (import.meta.env.MODE === 'development') {
       return 'http://127.0.0.1:8000/api';
     } else {
-      return 'https://api.monsite.com/api';
+      return '';
     }
   }
 
